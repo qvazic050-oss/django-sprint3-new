@@ -1,15 +1,13 @@
 from django.shortcuts import get_object_or_404, render
-from django.utils import timezone
 
 from .models import Category, Post
 
 
+POSTS_PER_PAGE = 5
+
+
 def index(request):
-    posts = Post.objects.filter(
-        pub_date__lte=timezone.now(),
-        is_published=True,
-        category__is_published=True,
-    ).order_by('-pub_date')[:5]
+    posts = Post.objects.published()[:POSTS_PER_PAGE]
 
     return render(
         request,
@@ -20,11 +18,8 @@ def index(request):
 
 def post_detail(request, pk):
     post = get_object_or_404(
-        Post,
+        Post.objects.published(),
         pk=pk,
-        pub_date__lte=timezone.now(),
-        is_published=True,
-        category__is_published=True,
     )
 
     return render(
@@ -41,11 +36,7 @@ def category_posts(request, slug):
         is_published=True,
     )
 
-    posts = Post.objects.filter(
-        category=category,
-        is_published=True,
-        pub_date__lte=timezone.now(),
-    ).order_by('-pub_date')
+    posts = category.posts.published()
 
     return render(
         request,
